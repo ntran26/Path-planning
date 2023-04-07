@@ -1,0 +1,176 @@
+function path = Astar(map, start, goal)
+    % map: matrix representation of the map
+    % start: 2-element array indicates the start point coordinates
+    % goal: 2-element array indicates the goal point coordinates
+    
+%     if class(map) == 'occupancyMap'
+%         map = getOccupancy(map);
+%         map = flip(map,1);
+%         [row,col] = size(map);
+%         
+%         for i = 1:row
+%             for j = 1:col
+%                 if map(i,j) > 0.9
+%                     map(i,j) = 1;
+%                 else
+%                     map(i,j) = 0;
+%                 end
+%             end
+%         end
+%     end
+%     elseif class(map) == 'double'
+%         map = map;
+%     else
+%         error('Error: input map must be either occupancy map or matrix')
+%     end
+    
+    % preprocess map
+    map = getOccupancy(map);
+    map = flip(map,1);
+    [row,col] = size(map);
+
+    for i = 1:row
+        for j = 1:col
+            if map(i,j) > 0.9
+                map(i,j) = 1;
+            else
+                map(i,j) = 0;
+            end
+        end
+    end
+
+    
+    % initialize open and closed lists
+    open = start;
+    closed = [];
+
+    % initalize distance at start node
+    [row,col] = size(map);
+    cost = zeros(row,col) + inf;
+    current = start;
+    cost(current) = distance(start,current,goal);
+    
+    % set cost of obstacle nodes as -1
+    for i = 1:row
+        for j = 1:col
+            if map(i,j) == 1
+                cost(i,j) = -1;
+            end
+        end
+    end
+    
+    % create 2 empty maps to store the coordinates of parent node
+    parent_row = zeros(row,col);
+    parent_col = zeros(row,col);
+
+    % main loop: while OPEN list is not empty
+    while ~isempty(open)
+        % take the node with the lowest f(n) in OPEN list and store as current
+
+        % get cost of each node in OPEN list and store in temp list
+        temp = [];
+        for n = 1:size(open,1)      % iterate through all nodes in OPEN list
+            temp = [temp; cost(open(n,1), open(n,2))]; 
+        end
+
+        [~, index] = min(temp);   % get index of minimum value
+        current = [open(index,:)];    % set node as current
+
+        % remove current node from OPEN and add to CLOSED
+        open(open(:,1) == current(1) & open(:,2) == current(2), :) = [];
+        closed = [closed; current];
+
+        % if current node is goal node, end the search
+        if (current(1) == goal(1)) && (current(2) == goal(2))
+            break;
+        end
+
+        % get neighbors of current node
+        neighbor_node = neighbor(map, current);
+
+        % loop through each neighbor node
+        for i = 1:size(neighbor_node,1)
+            node = [neighbor_node(i,1) neighbor_node(i,2)];
+
+            % if the node is in CLOSED list => skip the node
+            if any(node(1) == closed(:,1) & node(2) == closed(:,2)) || map(node(1),node(2)) == 1
+                continue;
+
+            % if the new cost is less than existing cost in the cost map
+            elseif (distance(current, node, goal) < cost(node(1),node(2))) && (map(node(1),node(2)) == 0)
+                % set new cost of the node
+                cost(node(1),node(2)) = distance(current, node, goal);
+                
+                % set current node as the new parent of the neighbor node
+                parent_row(node(1),node(2)) = current(1);
+                parent_col(node(1),node(2)) = current(2);
+
+                % if the node is not in OPEN list => add to OPEN
+                if ~any(node(1) == open(:,1) & node(2) == open(:,2))
+                    open = [open; node];
+                end
+            end
+        end
+    end
+
+    % reconstruct the path from goal node
+    path = goal;    
+    % Until path == start, get parent of each node (start from goal) and store in path
+    while path(1,1) ~= start(1) && path(1,2) ~= start(2)
+        path = [parent_row(path(1,1),path(1,2)) parent_col(path(1,1),path(1,2)); path];
+    end
+    
+%     % plot the path
+%     figure
+%     show(img)
+%     hold on;
+%     grid on;
+%     plot(path(:,2),path(:,1),'r','LineWidth',2)
+    
+    %%%%%%%% sub-functions %%%%%%%%
+
+    % calculate distance f(n) = g(n) + h(n)
+    function dist = distance(current, neighbor, goal) 
+        g_n = sqrt((current(1) - neighbor(1))^2 + (current(2) - neighbor(2))^2);
+        h_n = sqrt((neighbor(1) - goal(1))^2 + (neighbor(2) - goal(2))^2);
+        dist = g_n + h_n;
+    end 
+
+    % get neighbor nodes and check availability
+    function get_neighbor = neighbor(map,node)
+        [row, col] = size(map);
+        get_neighbor = [];
+
+        % set i, j as node coordinate
+        i = node(1);
+        j = node(2);
+
+        % 8 directions: 
+        % up, down, left, right, upper right, upper left, down right, down left
+        neighbor_cell = [i-1, j;
+                          i+1, j;
+                          i, j-1;
+                          i, j+1;
+                          i-1, j+1;
+                          i-1, j-1;
+                          i+1, j+1;
+                          i+1, j-1];
+
+    %     % 4 directions: up, down, left, right
+    %     neighbor_cell = [i-1, j;
+    %                       i+1, j;
+    %                       i, j-1;
+    %                       i, j+1];
+
+        for n = 1:size(neighbor_cell,1)
+            if (neighbor_cell(n,1) > 0) && (neighbor_cell(n,2) > 0)         % if the cell is in the map
+                if (neighbor_cell(n,1) <= row) && (neighbor_cell(n,2) <= col)
+                    if (map((neighbor_cell(n,1)),(neighbor_cell(n,2))) == 0)     % if the cell is free
+                        get_neighbor = [get_neighbor; neighbor_cell(n,:)];
+                    end
+                end
+            end
+        end
+    end
+end
+
