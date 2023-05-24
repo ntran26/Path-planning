@@ -25,10 +25,12 @@ function path = Astar(map, start, goal)
 %     end
     
     % preprocess map
+    % get matrix from occupancy map and flip
     map = getOccupancy(map);
     map = flip(map,1);
+    
+    % set values of the matrix to 0 and 1
     [row,col] = size(map);
-
     for i = 1:row
         for j = 1:col
             if map(i,j) > 0.9
@@ -39,7 +41,6 @@ function path = Astar(map, start, goal)
         end
     end
 
-    
     % initialize open and closed lists
     open = start;
     closed = [];
@@ -93,11 +94,11 @@ function path = Astar(map, start, goal)
             node = [neighbor_node(i,1) neighbor_node(i,2)];
 
             % if the node is in CLOSED list => skip the node
-            if any(node(1) == closed(:,1) & node(2) == closed(:,2)) || map(node(1),node(2)) == 1
+            if any(node(1) == closed(:,1) & node(2) == closed(:,2))
                 continue;
 
             % if the new cost is less than existing cost in the cost map
-            elseif (distance(current, node, goal) < cost(node(1),node(2))) && (map(node(1),node(2)) == 0)
+            elseif distance(current, node, goal) < cost(node(1),node(2))
                 % set new cost of the node
                 cost(node(1),node(2)) = distance(current, node, goal);
                 
@@ -116,8 +117,8 @@ function path = Astar(map, start, goal)
     % reconstruct the path from goal node
     path = goal;    
     % Until path == start, get parent of each node (start from goal) and store in path
-    while path(1,1) ~= start(1) && path(1,2) ~= start(2)
-        path = [parent_row(path(1,1),path(1,2)) parent_col(path(1,1),path(1,2)); path];
+    while path(1,1) ~= start(1) || path(1,2) ~= start(2)
+            path = [parent_row(path(1,1),path(1,2)) parent_col(path(1,1),path(1,2)); path];
     end
     
 %     % plot the path

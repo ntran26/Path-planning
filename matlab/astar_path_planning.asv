@@ -1,0 +1,46 @@
+clear all;
+
+% import image and transform to binary
+img = imread('map.jpg');
+img = rgb2gray(img);
+img = img < 100;
+img = imresize(img, 0.1);
+
+% create binary occupancy map from the binary image
+img = occupancyMap(img,1);
+inflate(img,1);
+
+% get map dimensions
+map = getOccupancy(img);
+[row, col] = size(map);
+
+% create borders (ones(rows, columns))
+border = 1;
+setOccupancy(img, [0 0], ones(row, border))  % left border 
+setOccupancy(img, [col-border 0], ones(row, border))  % right border
+setOccupancy(img, [0 row-border], ones(border, col))  % top border
+setOccupancy(img, [0 0], ones(border, col))   % bottom border
+
+% select start and goal points
+figure
+show(img)
+disp('Select start point');
+[x1,y1] = ginput(1);
+disp('Select goal point');
+[x2,y2] = ginput(1);
+
+x1 = round(x1);
+y1 = round(y1);
+x2 = round(x2);
+y2 = round(y2);
+
+start = [y1 x1]
+goal = [y2 x2]
+
+path = Astar(map, start, goal);
+
+figure
+show(img)
+hold on;
+grid on;
+plot(path(:,2),path(:,1),'r','LineWidth',2)
