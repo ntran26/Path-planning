@@ -84,7 +84,7 @@ controller = controllerPurePursuit;
 controller.Waypoints = path;
 
 % set controller parameters
-controller.DesiredLinearVelocity = 0,6;
+controller.DesiredLinearVelocity = 0.6;
 controller.MaxAngularVelocity = 2;
 controller.LookaheadDistance = 2;
 
