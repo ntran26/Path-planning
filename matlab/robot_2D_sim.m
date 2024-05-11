@@ -1,4 +1,5 @@
 clear all;
+clc;
 
 % define a set of waypoints for the desired path for the robot
 path = [2.00    1.00;
@@ -46,7 +47,7 @@ sampleTime = 0.1;
 vizRate = rateControl(1/sampleTime);
 
 figure
-show()
+% show()
 frameSize = robot.TrackWidth/0.8;
 
 while( distanceToGoal > goalRadius )

@@ -130,7 +130,6 @@ while( distanceToGoal > goalRadius )
     scatter(path(1,1), path(1,2), 20, 'r', 'filled')
     scatter(path(end,1), path(end,2), 20, 'b', 'filled')
     
-    
     % Plot the path of the robot as a set of transforms
     plotTrVec = [robotCurrentPose(1:2); 0];
     plotRot = axang2quat([0 0 1 robotCurrentPose(3)]);
